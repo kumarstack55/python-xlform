@@ -194,17 +194,17 @@ class FormItemTable(FormItem):
         book: Book,
         sheet_name: str,
         range_arg: str,
-        header_rows: int = 0,
+        header_rows_count: int = 0,
         header_list: Optional[List[List[str]]] = None,
     ):
         self._book = book
         self._sheet_name = sheet_name
         self._range_arg = range_arg
-        if header_rows < 0:
+        if header_rows_count < 0:
             raise XlFormArgumentException()
-        if header_rows > 0:
+        if header_rows_count > 0:
             raise XlFormNotImplementedException()
-        self._header_rows = header_rows
+        self._header_rows_count = header_rows_count
         self._header_list = header_list
 
     def _find_sheet(self, sheet_name: str) -> Sheet:
@@ -216,7 +216,7 @@ class FormItemTable(FormItem):
     def _validate_book(self) -> None:
         sheet = self._find_sheet(self._sheet_name)
         r = sheet.get_range(self._range_arg)
-        if r.get_rows_count() > self._header_rows or r.get_columns_count() > 0:
+        if r.get_rows_count() <= self._header_rows_count:
             raise XlFormValidationException()
 
         # TODO: check header value
@@ -228,7 +228,7 @@ class FormItemTable(FormItem):
         sheet = self._find_sheet(self._sheet_name)
         r = sheet.get_range(self._range_arg)
         if isinstance(result, list):
-            data_rows = r.get_rows_count() - self._header_rows
+            data_rows = r.get_rows_count() - self._header_rows_count
             if len(result) != data_rows:
                 raise XlFormValidationException()
             for row in range(0, data_rows):
