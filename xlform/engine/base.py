@@ -24,6 +24,22 @@ def safe_cast_cell_value(value: Any) -> CellValue:
 
 
 class Cell(object):
+    def get_row(self) -> int:
+        """Get row number
+
+        Returns:
+            int: Row number
+        """
+        raise XlFormNotImplementedException()
+
+    def get_column(self) -> int:
+        """Get column number
+
+        Returns:
+            int: Row number
+        """
+        raise XlFormNotImplementedException()
+
     def get_formula(self) -> CellValue:
         """Get formul(
 

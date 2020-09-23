@@ -275,7 +275,7 @@ class EngineTestCase(unittest.TestCase):
         ws = wb.active
         self.assertFalse(ws.protection.sheet)
 
-    def test_range_get_row(self) -> None:
+    def test_range_get_rows_count(self) -> None:
         path = self._get_book_path(
             rows=[[11, 12], [21, 22], [31, 32]], prefix="test_sheet_get_range"
         )
@@ -287,7 +287,7 @@ class EngineTestCase(unittest.TestCase):
 
         self.assertEqual(r.get_rows_count(), 2)
 
-    def test_range_get_column(self) -> None:
+    def test_range_get_columns_count(self) -> None:
         path = self._get_book_path(
             rows=[[11, 12], [21, 22], [31, 32]], prefix="test_sheet_get_range"
         )
@@ -472,6 +472,26 @@ class EngineTestCase(unittest.TestCase):
 
         self.assertEqual(text, "0")
         self.assertIsInstance(text, str)
+
+    def test_cell_get_row(self) -> None:
+        path = self._get_a1_zero_book_path(prefix="test_cell_get_row")
+
+        book: Book = self._engine.open_book(path)
+        sheets: List[Sheet] = book.get_sheets()
+        sheet: Sheet = sheets[0]
+        c: Cell = sheet.get_cell(2, 3)
+
+        self.assertEqual(c.get_row(), 2)
+
+    def test_cell_get_column(self) -> None:
+        path = self._get_a1_zero_book_path(prefix="test_cell_get_column")
+
+        book: Book = self._engine.open_book(path)
+        sheets: List[Sheet] = book.get_sheets()
+        sheet: Sheet = sheets[0]
+        c: Cell = sheet.get_cell(2, 3)
+
+        self.assertEqual(c.get_column(), 3)
 
     def test_cell_get_address(self) -> None:
         path = self._get_a1_zero_book_path(prefix="test_cell_get_address")

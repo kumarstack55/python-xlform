@@ -20,6 +20,18 @@ class CellOpenpyxl(Cell):
     def __init__(self, cell: openpyxl.cell.cell.Cell):
         self._cell = cell
 
+    def get_row(self) -> int:
+        row = self._cell.row
+        if isinstance(row, int):
+            return row
+        raise XlFormInternalException()
+
+    def get_column(self) -> int:
+        column = self._cell.column
+        if isinstance(column, int):
+            return column
+        raise XlFormInternalException()
+
     def get_formula(self) -> CellValue:
         return safe_cast_cell_value(self._cell.value)
 
