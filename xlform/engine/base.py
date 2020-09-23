@@ -65,8 +65,8 @@ class Cell(object):
         raise XlFormNotImplementedException()
 
     def get_address(
-            self, column_absolute: bool = True,
-            row_absolute: bool = True) -> str:
+        self, column_absolute: bool = True, row_absolute: bool = True
+    ) -> str:
         """Get cell address
 
         Args:
@@ -88,19 +88,19 @@ class Cell(object):
 
 
 class Range(object):
-    def get_row(self) -> int:
-        """Get row count
+    def get_rows_count(self) -> int:
+        """Get rows count
 
         Returns:
-            int: Row count
+            int: Rows count
         """
         raise XlFormNotImplementedException()
 
-    def get_column(self) -> int:
-        """Get column count
+    def get_columns_count(self) -> int:
+        """Get columns count
 
         Returns:
-            int: Column count
+            int: Columns count
         """
         raise XlFormNotImplementedException()
 

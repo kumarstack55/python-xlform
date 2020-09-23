@@ -30,16 +30,21 @@ class EngineTestCase(unittest.TestCase):
         self._engine: Engine = FakeEngine()
 
     def _set_ws_values(
-            self, ws: openpyxl.worksheet.worksheet.Worksheet,
-            rows: List[List[Union[float, int, str]]], column_left: int = 1,
-            row_top: int = 1) -> None:
+        self,
+        ws: openpyxl.worksheet.worksheet.Worksheet,
+        rows: List[List[Union[float, int, str]]],
+        column_left: int = 1,
+        row_top: int = 1,
+    ) -> None:
         for y, row in enumerate(rows, start=row_top):
             for x, value in enumerate(row, start=column_left):
                 ws.cell(row=y, column=x, value=value)
 
     def _get_book_path(
-            self, prefix: Optional[str] = None,
-            rows: Optional[List[List[Union[float, int, str]]]] = None) -> Path:
+        self,
+        prefix: Optional[str] = None,
+        rows: Optional[List[List[Union[float, int, str]]]] = None,
+    ) -> Path:
         wb = openpyxl.Workbook()
         assert wb.sheetnames == ["Sheet"]
 
@@ -175,12 +180,8 @@ class EngineTestCase(unittest.TestCase):
 
     def test_sheet_get_range__simple(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12],
-                    [21, 22],
-                    [31, 32],
-                ],
-                prefix="test_sheet_get_range")
+            rows=[[11, 12], [21, 22], [31, 32]], prefix="test_sheet_get_range"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -188,17 +189,13 @@ class EngineTestCase(unittest.TestCase):
         r: Range = sheet.get_range("A1:B3")
 
         self.assertIsInstance(r, Range)
-        self.assertEqual(r.get_row(), 3)
-        self.assertEqual(r.get_column(), 2)
+        self.assertEqual(r.get_rows_count(), 3)
+        self.assertEqual(r.get_columns_count(), 2)
 
     def test_sheet_get_range__single_column(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12],
-                    [21, 22],
-                    [31, 32],
-                ],
-                prefix="test_sheet_get_range")
+            rows=[[11, 12], [21, 22], [31, 32]], prefix="test_sheet_get_range"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -206,17 +203,13 @@ class EngineTestCase(unittest.TestCase):
         r: Range = sheet.get_range("A:A")
 
         self.assertIsInstance(r, Range)
-        self.assertEqual(r.get_row(), 3)
-        self.assertEqual(r.get_column(), 1)
+        self.assertEqual(r.get_rows_count(), 3)
+        self.assertEqual(r.get_columns_count(), 1)
 
     def test_sheet_get_range__single_row(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12],
-                    [21, 22],
-                    [31, 32],
-                ],
-                prefix="test_sheet_get_range")
+            rows=[[11, 12], [21, 22], [31, 32]], prefix="test_sheet_get_range"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -224,17 +217,13 @@ class EngineTestCase(unittest.TestCase):
         r: Range = sheet.get_range("1:1")
 
         self.assertIsInstance(r, Range)
-        self.assertEqual(r.get_row(), 1)
-        self.assertEqual(r.get_column(), 2)
+        self.assertEqual(r.get_rows_count(), 1)
+        self.assertEqual(r.get_columns_count(), 2)
 
     def test_sheet_get_range__single_cell(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12],
-                    [21, 22],
-                    [31, 32],
-                ],
-                prefix="test_sheet_get_range")
+            rows=[[11, 12], [21, 22], [31, 32]], prefix="test_sheet_get_range"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -242,8 +231,8 @@ class EngineTestCase(unittest.TestCase):
         r: Range = sheet.get_range("B1")
 
         self.assertIsInstance(r, Range)
-        self.assertEqual(r.get_row(), 1)
-        self.assertEqual(r.get_column(), 1)
+        self.assertEqual(r.get_rows_count(), 1)
+        self.assertEqual(r.get_columns_count(), 1)
 
     def test_sheet_get_cell(self) -> None:
         path = self._get_a1_zero_book_path(prefix="test_sheet_get_cell")
@@ -288,44 +277,32 @@ class EngineTestCase(unittest.TestCase):
 
     def test_range_get_row(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12],
-                    [21, 22],
-                    [31, 32],
-                ],
-                prefix="test_sheet_get_range")
+            rows=[[11, 12], [21, 22], [31, 32]], prefix="test_sheet_get_range"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
         sheet: Sheet = sheets[0]
         r: Range = sheet.get_range("A1:C2")
 
-        self.assertEqual(r.get_row(), 2)
+        self.assertEqual(r.get_rows_count(), 2)
 
     def test_range_get_column(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12],
-                    [21, 22],
-                    [31, 32],
-                ],
-                prefix="test_sheet_get_range")
+            rows=[[11, 12], [21, 22], [31, 32]], prefix="test_sheet_get_range"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
         sheet: Sheet = sheets[0]
         r: Range = sheet.get_range("A1:C2")
 
-        self.assertEqual(r.get_column(), 3)
+        self.assertEqual(r.get_columns_count(), 3)
 
     def test_range_get_cell__origin(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12],
-                    [21, 22],
-                    [31, 32],
-                ],
-                prefix="test_range_get_cell")
+            rows=[[11, 12], [21, 22], [31, 32]], prefix="test_range_get_cell"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -338,12 +315,9 @@ class EngineTestCase(unittest.TestCase):
 
     def test_range_get_cell__offset(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12, 13],
-                    [21, 22, 23],
-                    [31, 32, 33],
-                ],
-                prefix="test_range_get_cell")
+            rows=[[11, 12, 13], [21, 22, 23], [31, 32, 33]],
+            prefix="test_range_get_cell",
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -356,12 +330,9 @@ class EngineTestCase(unittest.TestCase):
 
     def test_range_get_cell__out_of_row_range(self) -> None:
         path = self._get_book_path(
-                rows=[
-                    [11, 12, 13],
-                    [21, 22, 23],
-                    [31, 32, 33],
-                ],
-                prefix="test_range_get_cell")
+            rows=[[11, 12, 13], [21, 22, 23], [31, 32, 33]],
+            prefix="test_range_get_cell",
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -373,7 +344,8 @@ class EngineTestCase(unittest.TestCase):
 
     def test_cell_get_formula__simple_formula(self) -> None:
         path = self._get_book_path(
-                rows=[["=1+1"]], prefix="test_cell_get_formula")
+            rows=[["=1+1"]], prefix="test_cell_get_formula"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -385,8 +357,7 @@ class EngineTestCase(unittest.TestCase):
         self.assertIsInstance(formula, str)
 
     def test_cell_get_formula__type_int(self) -> None:
-        path = self._get_book_path(
-                rows=[[1]], prefix="test_cell_get_formula")
+        path = self._get_book_path(rows=[[1]], prefix="test_cell_get_formula")
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -399,7 +370,8 @@ class EngineTestCase(unittest.TestCase):
 
     def test_cell_get_formula__type_float(self) -> None:
         path = self._get_book_path(
-                rows=[[1.5]], prefix="test_cell_get_formula")
+            rows=[[1.5]], prefix="test_cell_get_formula"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -412,7 +384,8 @@ class EngineTestCase(unittest.TestCase):
 
     def test_cell_get_formula__type_str(self) -> None:
         path = self._get_book_path(
-                rows=[["a"]], prefix="test_cell_get_formula")
+            rows=[["a"]], prefix="test_cell_get_formula"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -425,7 +398,8 @@ class EngineTestCase(unittest.TestCase):
 
     def test_cell_get_value__simple_formula(self) -> None:
         path = self._get_book_path(
-                rows=[["=1+1"]], prefix="test_cell_get_value")
+            rows=[["=1+1"]], prefix="test_cell_get_value"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -459,8 +433,7 @@ class EngineTestCase(unittest.TestCase):
         self.assertIsInstance(value, float)
 
     def test_cell_get_value__type_str(self) -> None:
-        path = self._get_book_path(
-                rows=[["a"]], prefix="test_range_get_value")
+        path = self._get_book_path(rows=[["a"]], prefix="test_range_get_value")
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -476,7 +449,8 @@ class EngineTestCase(unittest.TestCase):
 
     def test_cell_get_number_format(self) -> None:
         path = self._get_a1_zero_book_path(
-                prefix="test_cell_get_number_format")
+            prefix="test_cell_get_number_format"
+        )
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -488,8 +462,7 @@ class EngineTestCase(unittest.TestCase):
         self.assertIsInstance(value, str)
 
     def test_cell_get_text(self) -> None:
-        path = self._get_a1_zero_book_path(
-                prefix="test_cell_get_text")
+        path = self._get_a1_zero_book_path(prefix="test_cell_get_text")
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -501,8 +474,7 @@ class EngineTestCase(unittest.TestCase):
         self.assertIsInstance(text, str)
 
     def test_cell_get_address(self) -> None:
-        path = self._get_a1_zero_book_path(
-                prefix="test_cell_get_address")
+        path = self._get_a1_zero_book_path(prefix="test_cell_get_address")
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()
@@ -513,8 +485,7 @@ class EngineTestCase(unittest.TestCase):
         self.assertEqual(address, "$A$1")
 
     def test_cell_get_address__relative(self) -> None:
-        path = self._get_a1_zero_book_path(
-                prefix="test_cell_get_address")
+        path = self._get_a1_zero_book_path(prefix="test_cell_get_address")
 
         book: Book = self._engine.open_book(path)
         sheets: List[Sheet] = book.get_sheets()

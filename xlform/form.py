@@ -118,7 +118,7 @@ class FormItemCell(FormItem):
     def _validate_book(self) -> None:
         sheet = self._find_sheet(self._sheet_name)
         r = sheet.get_range(self._range_arg)
-        if r.get_row() != 1 or r.get_column() != 1:
+        if r.get_rows_count() != 1 or r.get_columns_count() != 1:
             raise XlFormArgumentException()
 
     def _validate_item_doc(self, item_doc: ItemDoc) -> None:
@@ -188,7 +188,7 @@ class FormItemKeyValueCells(FormItem):
 
 
 # TODO: implement
-class FormItemPlainTableCells(FormItem):
+class FormItemTable(FormItem):
     def __init__(
         self,
         book: Book,
@@ -216,7 +216,7 @@ class FormItemPlainTableCells(FormItem):
     def _validate_book(self) -> None:
         sheet = self._find_sheet(self._sheet_name)
         r = sheet.get_range(self._range_arg)
-        if r.get_row() > self._header_rows or r.get_column() > 0:
+        if r.get_rows_count() > self._header_rows or r.get_columns_count() > 0:
             raise XlFormValidationException()
 
         # TODO: check header value
@@ -228,11 +228,11 @@ class FormItemPlainTableCells(FormItem):
         sheet = self._find_sheet(self._sheet_name)
         r = sheet.get_range(self._range_arg)
         if isinstance(result, list):
-            data_rows = r.get_row() - self._header_rows
+            data_rows = r.get_rows_count() - self._header_rows
             if len(result) != data_rows:
                 raise XlFormValidationException()
             for row in range(0, data_rows):
-                if len(result[row]) != r.get_column():
+                if len(result[row]) != r.get_columns_count():
                     raise XlFormValidationException()
         elif isinstance(result, dict):
             raise XlFormNotImplementedException()

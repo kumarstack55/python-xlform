@@ -25,7 +25,7 @@ class CellOpenpyxl(Cell):
 
     def get_value(self) -> CellValue:
         value = safe_cast_cell_value(self._cell.value)
-        if isinstance(value, str) and value[0] == '=':
+        if isinstance(value, str) and value[0] == "=":
             raise XlFormNotImplementedException()
         return value
 
@@ -39,8 +39,8 @@ class CellOpenpyxl(Cell):
         raise XlFormNotImplementedException()
 
     def get_address(
-            self, column_absolute: bool = True,
-            row_absolute: bool = True) -> str:
+        self, column_absolute: bool = True, row_absolute: bool = True
+    ) -> str:
         return "%s%s%s%d" % (
             "$" if column_absolute else "",
             self._cell.column_letter,
@@ -54,23 +54,30 @@ class CellOpenpyxl(Cell):
 
 class RangeOpenpyxl(Range):
     def __init__(self, r: Tuple[Tuple[openpyxl.cell.cell.Cell]]):
-        if (not isinstance(r, tuple)) or (not isinstance(r[0], tuple)) or \
-           (not isinstance(r[0][0], openpyxl.cell.cell.Cell)):
+        if (
+            (not isinstance(r, tuple))
+            or (not isinstance(r[0], tuple))
+            or (not isinstance(r[0][0], openpyxl.cell.cell.Cell))
+        ):
             raise XlFormArgumentException()
         self._range = r
         self._column_offset = r[0][0].column - 1
         self._row_offset = r[0][0].row - 1
 
     def get_cell(self, row: int, column: int) -> Cell:
-        if row < 1 or self.get_row() < row or \
-           column < 1 or self.get_column() < column:
+        if (
+            row < 1
+            or self.get_rows_count() < row
+            or column < 1
+            or self.get_columns_count() < column
+        ):
             raise XlFormArgumentException()
         return CellOpenpyxl(self._range[row - 1][column - 1])
 
-    def get_column(self) -> int:
+    def get_columns_count(self) -> int:
         return len(self._range[0])
 
-    def get_row(self) -> int:
+    def get_rows_count(self) -> int:
         return len(self._range)
 
 
