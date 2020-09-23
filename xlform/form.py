@@ -9,6 +9,7 @@ from xlform.engine.base import Book
 from xlform.engine.base import CellValue
 from xlform.engine.base import Sheet
 from xlform.exception import XlFormArgumentException
+from xlform.exception import XlFormInternalException
 from xlform.exception import XlFormNotImplementedException
 from xlform.exception import XlFormValidationException
 from xlform import cell_dump
@@ -187,7 +188,6 @@ class FormItemKeyValueCells(FormItem):
         r.get_cell(1, 2).set_value(item_doc.get_result())
 
 
-# TODO: implement
 class FormItemTable(FormItem):
     def __init__(
         self,
@@ -218,9 +218,13 @@ class FormItemTable(FormItem):
         r = sheet.get_range(self._range_arg)
         if r.get_rows_count() <= self._header_rows_count:
             raise XlFormValidationException()
+        if r.get_columns_count() <= 0:
+            raise XlFormInternalException()
 
-        # TODO: check header value
-        raise XlFormNotImplementedException()
+        if self._header_rows_count == 0:
+            pass
+        else:
+            raise XlFormNotImplementedException()
 
     def _validate_item_doc(self, item_doc: ItemDoc) -> None:
         result = item_doc.get_result()
@@ -240,13 +244,38 @@ class FormItemTable(FormItem):
             raise XlFormValidationException()
 
     def _get_item_doc(self) -> ItemDoc:
-        if self._header_list is None:
-            raise XlFormNotImplementedException()
+        sheet = self._find_sheet(self._sheet_name)
+        r = sheet.get_range(self._range_arg)
+        if self._header_rows_count == 0:
+            meta: Dict[str, Any] = dict()
+            result: List[List[CellValue]] = list()
+            for row_index in range(1, r.get_rows_count() + 1):
+                row: List[CellValue] = list()
+                for col_index in range(1, r.get_columns_count() + 1):
+                    cell = r.get_cell(row_index, col_index)
+                    meta.update(cell_dump(cell))
+                    row.append(cell.get_value())
+                result.append(row)
+            return ItemDoc(meta=meta, result=result)
         else:
             raise XlFormNotImplementedException()
 
-    def _set_item_doc(self, item_value: ItemDoc) -> None:
+    def _set_item_doc(self, item_doc: ItemDoc) -> None:
         raise XlFormNotImplementedException()
+        # sheet = self._find_sheet(self._sheet_name)
+        # r = sheet.get_range(self._range_arg)
+        # result = item_doc.get_result()
+        # if not isinstance(result, list):
+        #     raise XlFormArgumentException()
+
+        # if False:
+        #     self._header_row
+        #     for row in enumerate(result, start=1):
+        #         if isinstance(row, list):
+        #             for value in enumerate(row, start=1):
+        #                 pass
+        #         else:
+        #             raise XlFormNotImplementedException()
 
 
 class Form(object):
