@@ -261,21 +261,24 @@ class FormItemTable(FormItem):
             raise XlFormNotImplementedException()
 
     def _set_item_doc(self, item_doc: ItemDoc) -> None:
-        raise XlFormNotImplementedException()
-        # sheet = self._find_sheet(self._sheet_name)
-        # r = sheet.get_range(self._range_arg)
-        # result = item_doc.get_result()
-        # if not isinstance(result, list):
-        #     raise XlFormArgumentException()
+        sheet = self._find_sheet(self._sheet_name)
+        r = sheet.get_range(self._range_arg)
 
-        # if False:
-        #     self._header_row
-        #     for row in enumerate(result, start=1):
-        #         if isinstance(row, list):
-        #             for value in enumerate(row, start=1):
-        #                 pass
-        #         else:
-        #             raise XlFormNotImplementedException()
+        result = item_doc.get_result()
+        if isinstance(result, list):
+            rows_count = len(result)
+            if r.get_rows_count() - self._header_rows_count != rows_count:
+                raise XlFormArgumentException()
+            for row in result:
+                if len(row) != r.get_columns_count():
+                    raise XlFormArgumentException()
+
+            for row_index, row in enumerate(result, start=1):
+                for col_index, value in enumerate(row, start=1):
+                    r.get_cell(row_index, col_index).set_value(value)
+
+        elif isinstance(result, dict):
+            raise XlFormNotImplementedException()
 
 
 class Form(object):

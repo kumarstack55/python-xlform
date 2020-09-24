@@ -55,7 +55,6 @@ class TestFormItemTable(unittest.TestCase):
         )
 
     def test_set_form_doc(self) -> None:
-        self.skipTest("not implemented")
         factory: FormFactory = FormFactory()
         factory.register_form(
             "form1",
