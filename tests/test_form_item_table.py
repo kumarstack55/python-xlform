@@ -26,7 +26,7 @@ class TestFormItemTable(unittest.TestCase):
             for col, value in enumerate(rows, start=1):
                 self._sheet.get_cell(row, col).set_value(value)
 
-    def test_get_form_doc(self) -> None:
+    def test_get_form_doc__header_rows_count_0(self) -> None:
         factory: FormFactory = FormFactory()
         factory.register_form(
             "form1",
@@ -51,6 +51,51 @@ class TestFormItemTable(unittest.TestCase):
                 ["data111", "data112", "data121"],
                 ["data211", "data212", "data221"],
                 ["data311", "data312", "data321"],
+            ],
+        )
+
+    def test_get_form_doc__header_rows_count_1(self) -> None:
+        factory: FormFactory = FormFactory()
+        factory.register_form(
+            "form1",
+            {
+                "item1": {
+                    "cls": FormItemTable,
+                    "kwargs": {
+                        "sheet_name": "Sheet1",
+                        "range_arg": "A2:C5",
+                        "header_rows_count": 1,
+                        "header_list": [["head11"], ["head12"], ["head21"]],
+                    },
+                }
+            },
+        )
+        form = factory.new_form("form1", self._book)
+        doc = form.get_form_doc()
+
+        self.assertIsInstance(doc, dict)
+        self.assertTrue("item1" in doc)
+        self.assertIsInstance(doc["item1"], dict)
+        self.assertTrue("_meta" in doc["item1"])
+        self.assertTrue("result" in doc["item1"])
+        self.assertEqual(
+            doc["item1"]["result"],
+            [
+                {
+                    "head11": "data111",
+                    "head12": "data112",
+                    "head21": "data121",
+                },
+                {
+                    "head11": "data211",
+                    "head12": "data212",
+                    "head21": "data221",
+                },
+                {
+                    "head11": "data311",
+                    "head12": "data312",
+                    "head21": "data321",
+                },
             ],
         )
 
