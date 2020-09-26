@@ -65,7 +65,11 @@ class TestFormItemTable(unittest.TestCase):
                         "sheet_name": "Sheet1",
                         "range_arg": "A2:C5",
                         "header_rows_count": 1,
-                        "header_list": [["head11"], ["head12"], ["head21"]],
+                        "header_path_list": [
+                            ["head11"],
+                            ["head12"],
+                            ["head21"],
+                        ],
                     },
                 }
             },
@@ -95,6 +99,52 @@ class TestFormItemTable(unittest.TestCase):
                     "head11": "data311",
                     "head12": "data312",
                     "head21": "data321",
+                },
+            ],
+        )
+
+    def test_get_form_doc__header_rows_count_gt_1(self) -> None:
+        factory: FormFactory = FormFactory()
+        factory.register_form(
+            "form1",
+            {
+                "item1": {
+                    "cls": FormItemTable,
+                    "kwargs": {
+                        "sheet_name": "Sheet1",
+                        "range_arg": "A1:C5",
+                        "header_rows_count": 2,
+                        "header_path_list": [
+                            ["head1", "head11"],
+                            ["head1", "head12"],
+                            ["head2", "head21"],
+                        ],
+                    },
+                }
+            },
+        )
+        form = factory.new_form("form1", self._book)
+        doc = form.get_form_doc()
+
+        self.assertIsInstance(doc, dict)
+        self.assertTrue("item1" in doc)
+        self.assertIsInstance(doc["item1"], dict)
+        self.assertTrue("_meta" in doc["item1"])
+        self.assertTrue("result" in doc["item1"])
+        self.assertEqual(
+            doc["item1"]["result"],
+            [
+                {
+                    "head1": {"head11": "data111", "head12": "data112"},
+                    "head2": {"head21": "data121"},
+                },
+                {
+                    "head1": {"head11": "data211", "head12": "data212"},
+                    "head2": {"head21": "data221"},
+                },
+                {
+                    "head1": {"head11": "data311", "head12": "data312"},
+                    "head2": {"head21": "data321"},
                 },
             ],
         )

@@ -7,6 +7,7 @@ from typing import List
 from typing import Optional
 from xlform.engine.base import Book
 from xlform.engine.base import CellValue
+from xlform.engine.base import Range
 from xlform.engine.base import Sheet
 from xlform.exception import XlFormArgumentException
 from xlform.exception import XlFormInternalException
@@ -196,34 +197,32 @@ class FormItemTable(FormItem):
         sheet_name: str,
         range_arg: str,
         header_rows_count: int = 0,
-        header_list: Optional[List[List[str]]] = None,
+        header_path_list: Optional[List[List[str]]] = None,
     ):
         self._book = book
         self._sheet_name = sheet_name
         self._range_arg = range_arg
         self._header_rows_count = header_rows_count
-        self._header_list = header_list
+        self._header_path_list = header_path_list
 
         if self._header_rows_count < 0:
             raise XlFormArgumentException()
-        elif self._header_rows_count == 0:
-            pass
-        elif self._header_rows_count == 1:
-            if not isinstance(self._header_list, list):
+        elif self._header_rows_count > 1:
+            if not isinstance(self._header_path_list, list):
                 raise XlFormArgumentException()
             try:
                 self._validate_book()
             except XlFormValidationException as e:
-                raise XlFormArgumentException(
-                    "Illegal argument: %s" % (str(e))
-                )
-            for header_path in self._header_list:
+                raise XlFormArgumentException("Illegal argument: %s" % (e))
+            for header_path in self._header_path_list:
                 if not isinstance(header_path, list):
-                    raise XlFormArgumentException()
-                if len(header_path) != 1:
-                    raise XlFormArgumentException()
-        elif self._header_rows_count > 1:
-            raise XlFormNotImplementedException()
+                    raise XlFormArgumentException(
+                        "not isinstance(header_path, list)"
+                    )
+                if len(header_path) != self._header_rows_count:
+                    raise XlFormArgumentException(
+                        "len(header_path) != self._header_rows_count"
+                    )
 
     def _find_sheet(self, sheet_name: str) -> Sheet:
         for sheet in self._book.iter_sheets():
@@ -240,71 +239,124 @@ class FormItemTable(FormItem):
             raise XlFormInternalException()
         if self._header_rows_count == 0:
             pass
-        elif self._header_rows_count == 1:
-            if self._header_list is None:
+        elif self._header_rows_count >= 1:
+            if self._header_path_list is None:
                 raise XlFormInternalException()
-            if len(self._header_list) != r.get_columns_count():
+            if len(self._header_path_list) != r.get_columns_count():
                 raise XlFormArgumentException(
-                    "The list of headers and the table width are not equal:"
-                    "(_header_list: %d, get_columns_count: %d)"
+                    "len(self._header_path_list) != r.get_columns_count()"
                 )
-            for col_index, header in enumerate(self._header_list, start=1):
-                if r.get_cell(1, col_index).get_value() != header[0]:
-                    XlFormValidationException()
+            for col_index, header_path in enumerate(
+                self._header_path_list, start=1
+            ):
+                for row_index, header in enumerate(header_path, start=1):
+                    if r.get_cell(row_index, col_index).get_value() != header:
+                        XlFormValidationException()
         else:
             raise XlFormNotImplementedException()
+
+    def _validate_item_doc_row_list(
+        self, range_: Range, row: List[CellValue], row_index: int
+    ) -> None:
+        if len(row) != range_.get_columns_count():
+            raise XlFormValidationException(
+                "len(row) != range_.get_columns_count(): (%s, %d)"
+                % (row, range_.get_columns_count())
+            )
+
+    def _validate_item_doc_row_dict(
+        self, range_: Range, row: Dict[str, Any], row_index: int
+    ) -> None:
+        assert isinstance(self._header_path_list, list)
+        for col_index, header_path in enumerate(self._header_path_list):
+            dic = row
+            for header_path_index in range(0, len(header_path) - 1):
+                path_part = header_path[header_path_index]
+                if path_part not in dic:
+                    raise XlFormValidationException(
+                        "path_part not in dic: header_path=%s, row=%s"
+                        % (header_path, row)
+                    )
+                dic = dic[path_part]
+                if not isinstance(dic, dict):
+                    raise XlFormValidationException(
+                        "not isinstance(dic, dict): row=%s, header_path=%s"
+                        % (row, header_path)
+                    )
+            if not header_path[-1] in dic:
+                raise XlFormValidationException()
 
     def _validate_item_doc(self, item_doc: ItemDoc) -> None:
         result = item_doc.get_result()
 
         sheet = self._find_sheet(self._sheet_name)
         r = sheet.get_range(self._range_arg)
-        if isinstance(result, list):
-            data_rows_count = r.get_rows_count() - self._header_rows_count
-            if len(result) != data_rows_count:
-                raise XlFormValidationException(
-                    "len(result) != data_rows_count: %d, %d"
-                    % (len(result), data_rows_count)
-                )
-            for row in range(0, data_rows_count):
-                if len(result[row]) != r.get_columns_count():
-                    raise XlFormValidationException()
-        elif isinstance(result, dict):
-            raise XlFormNotImplementedException()
-        else:
+        if not isinstance(result, list):
             raise XlFormValidationException()
+
+        data_rows_count = r.get_rows_count() - self._header_rows_count
+        if len(result) != data_rows_count:
+            raise XlFormValidationException(
+                "len(result) != data_rows_count: %d, %d"
+                % (len(result), data_rows_count)
+            )
+        for row_index in range(0, data_rows_count):
+            row = result[row_index]
+            if isinstance(row, list):
+                self._validate_item_doc_row_list(r, row, row_index)
+            elif isinstance(row, dict):
+                self._validate_item_doc_row_dict(r, row, row_index)
+            else:
+                raise XlFormValidationException()
+
+    def _get_item_doc_row_list(
+        self, meta: Dict[str, Any], range_: Range
+    ) -> ItemDoc:
+        result_list: List[List[CellValue]] = list()
+        for row_index in range(1, range_.get_rows_count() + 1):
+            row_list: List[CellValue] = list()
+            for col_index in range(1, range_.get_columns_count() + 1):
+                cell = range_.get_cell(row_index, col_index)
+                meta.update(cell_dump(cell))
+                row_list.append(cell.get_value())
+            result_list.append(row_list)
+        return ItemDoc(meta=meta, result=result_list)
+
+    def _get_item_doc_row_dict(
+        self, meta: Dict[str, Any], range_: Range
+    ) -> ItemDoc:
+        result_list: List[Dict[str, CellValue]] = list()
+        start = 1 + self._header_rows_count
+        for row_index in range(start, range_.get_rows_count() + 1):
+            row_dict: Dict[str, CellValue] = dict()
+            for col_index in range(1, range_.get_columns_count() + 1):
+                cell = range_.get_cell(row_index, col_index)
+                meta.update(cell_dump(cell))
+                assert self._header_path_list is not None
+                header_path = self._header_path_list[col_index - 1]
+
+                dic: Dict[str, Any] = row_dict
+                for header_path_index in range(0, len(header_path) - 1):
+                    path_part = header_path[header_path_index]
+                    if path_part not in dic:
+                        dic[path_part] = dict()
+                    if not isinstance(dic[path_part], dict):
+                        raise XlFormInternalException()
+                    dic = dic[path_part]
+                dic[header_path[-1]] = cell.get_value()
+            result_list.append(row_dict)
+        return ItemDoc(meta=meta, result=result_list)
 
     def _get_item_doc(self) -> ItemDoc:
         sheet = self._find_sheet(self._sheet_name)
         r = sheet.get_range(self._range_arg)
         meta: Dict[str, Any] = dict()
         if self._header_rows_count == 0:
-            result_list: List[List[CellValue]] = list()
-            for row_index in range(1, r.get_rows_count() + 1):
-                row_list: List[CellValue] = list()
-                for col_index in range(1, r.get_columns_count() + 1):
-                    cell = r.get_cell(row_index, col_index)
-                    meta.update(cell_dump(cell))
-                    row_list.append(cell.get_value())
-                result_list.append(row_list)
-            return ItemDoc(meta=meta, result=result_list)
-        elif self._header_rows_count == 1:
-            result_list2: List[Dict[str, CellValue]] = list()
-            for row_index in range(
-                1 + self._header_rows_count, r.get_rows_count() + 1
-            ):
-                row_dict: Dict[str, CellValue] = dict()
-                for col_index in range(1, r.get_columns_count() + 1):
-                    cell = r.get_cell(row_index, col_index)
-                    meta.update(cell_dump(cell))
-                    assert self._header_list is not None
-                    header_list: List[List[str]] = self._header_list
-                    key = header_list[col_index - 1][0]
-                    row_dict[key] = cell.get_value()
-                result_list2.append(row_dict)
-            return ItemDoc(meta=meta, result=result_list2)
+            return self._get_item_doc_row_list(meta, r)
+        elif self._header_rows_count >= 1:
+            return self._get_item_doc_row_dict(meta, r)
         else:
-            raise XlFormNotImplementedException()
+            raise XlFormInternalException()
 
     def _set_item_doc(self, item_doc: ItemDoc) -> None:
         sheet = self._find_sheet(self._sheet_name)
