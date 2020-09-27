@@ -7,11 +7,11 @@ authors = ["kumarstack55 <kumarstack55@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.6.1"
 openpyxl = "^3.0.3"
+mypy = "^0.780"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 flake8 = "^3.8.3"
-mypy = "^0.780"
 coverage = "^5.1"
 pre-commit = "^2.6.0"
 setuptools = "^50.3.0"
