@@ -17,8 +17,8 @@ from pathlib import Path
 import sys
 
 conf_py_dir: Path = Path(__file__).parent
-xlform_dir: Path = conf_py_dir.parent.parent / "xlform"
-sys.path.insert(0, str(xlform_dir.resolve()))
+project_dir: Path = conf_py_dir.parent.parent
+sys.path.insert(0, str(project_dir.resolve()))
 
 
 # -- Project information -----------------------------------------------------
