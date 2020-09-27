@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/kumarstack55/python-xlform/branch/master/graph/badge.svg?token=ETG7NIKFW8)](https://codecov.io/gh/kumarstack55/python-xlform)
+[![codecov](https://codecov.io/gh/kumarstack55/python-xlform/branch/master/graph/badge.svg?token=ETG7NIKFW8)](https://codecov.io/gh/kumarstack55/python-xlform) [![Documentation Status](https://readthedocs.org/projects/python-xlform/badge/?version=latest)](https://python-xlform.readthedocs.io/en/latest/?badge=latest)
 
 # python-xlform
 
