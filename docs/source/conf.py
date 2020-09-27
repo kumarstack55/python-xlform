@@ -69,6 +69,11 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
+# The master toctree document.
+# Add master_doc to avoid "Sphinx error: missing master file" on
+# readthedocs.org.
+# https://github.com/readthedocs/readthedocs.org/issues/6232#ref-commit-c552b40
+master_doc = "index"
 
 # -- Extension configuration -------------------------------------------------
 
