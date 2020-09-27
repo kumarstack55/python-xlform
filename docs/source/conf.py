@@ -13,6 +13,12 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+from pathlib import Path
+import sys
+
+conf_py_dir: Path = Path(__file__).parent
+xlform_dir: Path = conf_py_dir.parent.parent / "xlform"
+sys.path.insert(0, str(xlform_dir.resolve()))
 
 
 # -- Project information -----------------------------------------------------
@@ -29,8 +35,9 @@ author = "kumarstack55"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.intersphinx",
     "sphinx.ext.ifconfig",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.napoleon",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
